@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto glass p-4 sm:p-6 rounded">
+  <h2 class="text-xl font-semibold mb-4">Change Avatar</h2>
+  <div class="mb-4">
+    {% if user.avatar %}
+      <img src="{{ user.avatar }}" class="w-24 h-24 rounded-full object-cover">
+    {% else %}
+      <div class="w-24 h-24 rounded-full bg-emerald-200 flex items-center justify-center text-2xl font-semibold text-emerald-700">{{ user.initial }}</div>
+    {% endif %}
+  </div>
+  <form method="post" enctype="multipart/form-data" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Option 1 — Avatar URL <span class="text-xs text-emerald-600">(works on Vercel ✓)</span></label>
+      <input type="url" name="avatar_url" placeholder="https://example.com/your-photo.png"
+             value="{{ user.avatar if user.avatar and user.avatar.startswith('http') else '' }}"
+             class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-emerald-400">
+    </div>
+    <div>
+      <label class="block text-sm font-medium mb-1">Option 2 — Upload File <span class="text-xs text-amber-500">(local dev only)</span></label>
+      <input type="file" name="avatar" accept="image/*" class="mt-1 w-full text-sm">
+    </div>
+    <div class="flex flex-col sm:flex-row gap-2">
+      <button class="btn-emerald text-white px-4 py-2 rounded w-full sm:w-auto">Save Avatar</button>
+      <a href="{{ url_for('profile_remove') }}" class="px-3 py-2 rounded border text-center w-full sm:w-auto text-red-600 hover:bg-red-50">Remove</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

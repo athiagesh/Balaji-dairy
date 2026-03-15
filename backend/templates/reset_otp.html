@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto glass p-6 rounded shadow-lg">
+  <h2 class="text-2xl font-bold text-emerald-700 mb-4 text-center">Set New Password</h2>
+  <form method="post" class="space-y-4">
+    <div>
+      <label class="block text-sm mb-1">New Password</label>
+      <input name="password" type="password" required minlength="6" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-emerald-400">
+    </div>
+    <div>
+      <label class="block text-sm mb-1">Confirm Password</label>
+      <input name="confirm" type="password" required minlength="6" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-emerald-400">
+    </div>
+    <button class="w-full btn-emerald py-2.5 rounded-lg font-semibold shadow">Reset Password</button>
+  </form>
+</div>
+{% endblock %}

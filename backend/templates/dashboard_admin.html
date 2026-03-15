@@ -1,0 +1,162 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="text-xl sm:text-2xl font-semibold mb-3 sm:mb-4">Admin Dashboard</h2>
+<div class="glass p-3 sm:p-4 rounded mb-4 sm:mb-6">
+  <div class="flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+    <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+      <div class="text-sm font-medium">Period:</div>
+      <div class="flex gap-2 flex-wrap">
+        <button class="period-btn px-3 py-1.5 rounded btn-emerald text-white" data-period="day">Daily</button>
+        <button class="period-btn px-3 py-1.5 rounded btn-ghost" data-period="week">Weekly</button>
+        <button class="period-btn px-3 py-1.5 rounded btn-ghost" data-period="month">Monthly</button>
+        <button class="period-btn px-3 py-1.5 rounded btn-ghost" data-period="year">Yearly</button>
+      </div>
+    </div>
+    <div class="flex items-stretch md:items-center gap-2 flex-col sm:flex-row">
+      <div class="text-sm text-gray-500 sm:self-center">From</div>
+      <input type="date" id="filter-start" class="border rounded px-2 py-2">
+      <div class="text-sm text-gray-500 sm:self-center">To</div>
+      <input type="date" id="filter-end" class="border rounded px-2 py-2">
+      <div class="flex gap-2">
+        <button id="filter-apply" class="btn-emerald text-white px-3 py-2 rounded">Apply</button>
+        <button id="filter-reset" class="px-3 py-2 rounded border">Reset</button>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <canvas id="salesChart" height="120" class="w-full"></canvas>
+  </div>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6">
+  <div class="col-span-1 md:col-span-2 glass p-3 sm:p-4 rounded">
+    <div class="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-3 sm:mb-4">
+      <h3 class="font-semibold">Product Management</h3>
+      <a href="{{ url_for('admin_add_product') }}" class="btn-emerald text-white px-3 py-2 rounded text-center">Add Product</a>
+    </div>
+    <div class="overflow-x-auto -mx-2 sm:mx-0">
+      <table class="w-full text-left min-w-[720px] sm:min-w-0 rounded border-collapse">
+        <thead class="bg-emerald-50"><tr>
+          <th class="py-3 px-4">Image</th><th class="py-3 px-4">Name</th><th class="py-3 px-4">Description</th>
+          <th class="py-3 px-4">Price</th><th class="py-3 px-4">Stock</th><th class="py-3 px-4">Actions</th>
+        </tr></thead>
+        <tbody id="products-table-body" class="bg-white/40">
+          {% for p in products %}
+          <tr class="border-t hover:bg-white/70">
+            <td class="py-3 px-4"><img src="{{ p.image or 'https://via.placeholder.com/100x100?text=No' }}" class="w-12 h-12 rounded-full object-cover"></td>
+            <td class="py-3 px-4 font-medium">{{ p.name }}</td>
+            <td class="py-3 px-4 text-gray-500 text-sm">{{ p.description }}</td>
+            <td class="py-3 px-4">₹{{ '%.2f'|format(p.price) }}</td>
+            <td class="py-3 px-4">{% if p.stock == 0 %}<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded text-xs">Out</span>{% else %}{{ p.stock }}{% endif %}</td>
+            <td class="py-3 px-4">
+              <a href="{{ url_for('admin_edit_product', product_id=p.id) }}" class="text-sm underline mr-3">Edit</a>
+              <form method="post" action="{{ url_for('admin_delete_product', product_id=p.id) }}" style="display:inline;" onsubmit="return confirm('Delete {{ p.name }}?');">
+                <button class="text-red-600 text-sm">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  <div class="glass p-4 rounded" id="quick-stats-box">
+    <h3 class="font-semibold mb-3">Quick Stats</h3>
+    <div class="space-y-3" id="quick-stats-content">
+      <div>Total users: <strong>{{ stats.users }}</strong></div>
+      <div>Total orders: <strong>{{ stats.orders }}</strong></div>
+      <div>Revenue: <strong>₹{{ '%.2f'|format(stats.revenue) }}</strong></div>
+    </div>
+  </div>
+</div>
+<div class="mt-4 sm:mt-6 glass p-3 sm:p-4 rounded" id="orders-section">
+  <h3 class="font-semibold mb-3">Orders by User</h3>
+  <div id="orders-wrapper">
+    {% if daywise %}
+      {% for day, orders in daywise.items() %}
+      <div class="mb-4 sm:mb-6 border border-white/50 rounded-lg overflow-hidden">
+        <div class="bg-emerald-50/80 px-4 py-2 text-sm font-semibold text-emerald-800 border-b border-emerald-100">
+          {{ day }} — {{ orders|length }} order{{ 's' if orders|length > 1 else '' }}
+        </div>
+        <div class="overflow-x-auto -mx-2 sm:mx-0">
+          <table class="w-full text-left text-sm border-collapse min-w-[720px] sm:min-w-0">
+            <thead class="bg-emerald-100 text-emerald-900"><tr>
+              <th class="py-2 px-4">Order</th><th class="py-2 px-4">User</th><th class="py-2 px-4">Items</th>
+              <th class="py-2 px-4 text-right">Total</th><th class="py-2 px-4">Status</th><th class="py-2 px-4 text-center">Action</th>
+            </tr></thead>
+            <tbody class="bg-white/50">
+              {% for o in orders %}
+              <tr class="border-t hover:bg-white/70">
+                <td class="py-2 px-4 align-top"><div class="font-medium">#{{ o.id }}</div><div class="text-xs text-gray-500">{{ o.created_at }}</div></td>
+                <td class="py-2 px-4 align-top">{{ o.username or ('User ' + (o.user_id|string)) }}</td>
+                <td class="py-2 px-4 align-top text-gray-700">{{ o.items_summary }}</td>
+                <td class="py-2 px-4 align-top text-right font-semibold">₹{{ '%.2f'|format(o.total) }}</td>
+                <td class="py-2 px-4 align-top">
+                  <span class="px-2 py-0.5 rounded text-xs {% if o.status=='Pending'%}bg-yellow-100 text-yellow-800{% elif o.status=='Confirmed'%}bg-blue-100 text-blue-800{% elif o.status=='Out for Delivery'%}bg-purple-100 text-purple-800{% elif o.status=='Delivered'%}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-700{% endif %}">{{ o.status }}</span>
+                </td>
+                <td class="py-2 px-4 text-center">
+                  <div class="flex items-center justify-center gap-2">
+                    <a href="{{ url_for('view_order', order_id=o.id) }}" class="text-sm text-emerald-700 hover:underline">View</a>
+                    <form method="post" action="{{ url_for('admin_update_order', order_id=o.id) }}" class="flex items-center gap-2">
+                      <select name="status" class="border rounded px-2 py-1 text-sm focus:ring-emerald-400">
+                        <option {{ 'selected' if o.status=='Pending' else '' }}>Pending</option>
+                        <option {{ 'selected' if o.status=='Confirmed' else '' }}>Confirmed</option>
+                        <option {{ 'selected' if o.status=='Out for Delivery' else '' }}>Out for Delivery</option>
+                        <option {{ 'selected' if o.status=='Delivered' else '' }}>Delivered</option>
+                      </select>
+                      <button class="btn-emerald text-white px-2 py-1 rounded text-sm">Update</button>
+                    </form>
+                    <form method="post" action="{{ url_for('delete_order', order_id=o.id) }}" onsubmit="return confirm('Delete order #{{ o.id }}?');">
+                      <button class="text-red-600 text-sm hover:underline">Delete</button>
+                    </form>
+                  </div>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="text-gray-600 text-center py-6 border border-gray-100 rounded">No orders yet.</div>
+    {% endif %}
+  </div>
+</div>
+<script>
+let salesChart=null; let currentPeriod='day';
+async function fetchSalesAndRender(period,start,end){
+  const p=new URLSearchParams();if(period)p.set('period',period);if(start)p.set('start',start);if(end)p.set('end',end);
+  const r=await fetch('{{ url_for("admin_sales_data") }}?'+p.toString());
+  const data=await r.json();
+  const ctx=document.getElementById('salesChart').getContext('2d');
+  if(salesChart)salesChart.destroy();
+  salesChart=new Chart(ctx,{type:'line',data:{labels:data.labels||[],datasets:[{label:'Sales (₹)',data:data.values||[],fill:true,tension:0.25,borderColor:'rgba(16,185,129,0.95)',backgroundColor:'rgba(16,185,129,0.12)',pointRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}}}});
+}
+async function fetchOrdersFiltered(start,end){
+  const p=new URLSearchParams();if(start)p.set('start',start);if(end)p.set('end',end);
+  const r=await fetch('{{ url_for("admin_orders_fragment") }}?'+p.toString());
+  if(r.ok)document.getElementById('orders-wrapper').innerHTML=await r.text();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  fetchSalesAndRender(currentPeriod,'','');
+  document.querySelectorAll('.period-btn').forEach(b=>{
+    b.addEventListener('click',()=>{
+      document.querySelectorAll('.period-btn').forEach(x=>{x.classList.remove('btn-emerald','text-white');x.classList.add('btn-ghost');});
+      b.classList.remove('btn-ghost');b.classList.add('btn-emerald','text-white');
+      currentPeriod=b.dataset.period;
+      const s=document.getElementById('filter-start').value;const e=document.getElementById('filter-end').value;
+      fetchSalesAndRender(currentPeriod,s,e);fetchOrdersFiltered(s,e);
+    });
+  });
+  document.getElementById('filter-apply').addEventListener('click',()=>{
+    const s=document.getElementById('filter-start').value;const e=document.getElementById('filter-end').value;
+    fetchSalesAndRender(currentPeriod,s,e);fetchOrdersFiltered(s,e);
+  });
+  document.getElementById('filter-reset').addEventListener('click',()=>{
+    document.getElementById('filter-start').value='';document.getElementById('filter-end').value='';
+    fetchSalesAndRender(currentPeriod,'','');fetchOrdersFiltered('','');
+  });
+});
+</script>
+{% endblock %}

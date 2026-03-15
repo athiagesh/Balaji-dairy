@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-5xl mx-auto glass p-4 sm:p-6 rounded shadow">
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+    <div class="rounded p-2">
+      <img src="{{ product.image or 'https://via.placeholder.com/300x200?text=No+Image' }}" alt="{{ product.name }}" class="w-full h-72 sm:h-80 object-cover rounded">
+    </div>
+    <div>
+      <h1 class="text-xl sm:text-2xl font-bold text-emerald-700">{{ product.name }}</h1>
+      <p class="mt-2 text-sm sm:text-base text-gray-600">{{ product.description }}</p>
+      <div class="mt-3 sm:mt-4 text-xl sm:text-2xl font-semibold text-emerald-700">₹{{ '%.2f'|format(product.price) }}</div>
+      <div class="mt-2 text-sm text-gray-600">
+        {% if product.stock == 0 %}<span class="bg-red-100 text-red-700 px-2 py-0.5 rounded">Out of Stock</span>
+        {% else %}Stock: <strong>{{ product.stock }}</strong>{% endif %}
+      </div>
+      <form action="{{ url_for('add_to_cart', product_id=product.id) }}" method="post" class="mt-4 flex flex-wrap items-center gap-3">
+        <label class="block text-sm">Qty</label>
+        <input type="number" name="qty" value="1" min="1" class="border rounded px-2 py-2 w-24" {% if product.stock==0 %}disabled{% endif %}>
+        <button class="btn-emerald text-white px-4 py-2 rounded {% if product.stock==0 %}opacity-60 cursor-not-allowed{% endif %}">Add to Cart</button>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

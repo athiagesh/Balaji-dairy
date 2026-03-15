@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Balaji Dairy</title>
+  <link rel="icon" href="{{ url_for('static', filename='logo.png') }}" type="image/png">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    :root{--emerald-600:#059669;--emerald-500:#10b981;--blue-dark:#0f172a;--blue-medium:#1e293b;--glass-bg:rgba(255,255,255,0.7);--glass-brd:rgba(255,255,255,0.3);--shadow-xl:0 20px 45px rgba(17,24,39,0.08);}
+    body{background:radial-gradient(1200px 600px at -10% -20%,rgba(16,185,129,0.06),transparent 60%),radial-gradient(900px 500px at 110% 10%,rgba(16,185,129,0.08),transparent 60%),linear-gradient(180deg,#f8fafc 0%,#fff 100%);color:#111827;}
+    .glass{background:var(--glass-bg);backdrop-filter:blur(12px);border:1px solid var(--glass-brd);box-shadow:var(--shadow-xl);}
+    .btn-emerald{background:linear-gradient(180deg,#10b981,#059669);color:#fff;}
+    .btn-emerald:hover{filter:brightness(1.05);transform:translateY(-1px);}
+    .btn-ghost{background:rgba(16,185,129,0.1);color:#065f46;}
+    .avatar-img{width:36px;height:36px;border-radius:9999px;object-fit:cover;}
+    .avatar-circle{width:36px;height:36px;border-radius:9999px;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;background:linear-gradient(90deg,#10b981,#34d399);}
+    .nav-glass{background:rgba(255,255,255,0.9);backdrop-filter:blur(10px);border-bottom:1px solid rgba(0,0,0,0.05);}
+    .brand-text{background:linear-gradient(90deg,#047857,#10b981);-webkit-background-clip:text;color:transparent;font-weight:800;}
+    footer.site-footer{background:linear-gradient(180deg,var(--blue-dark) 0%,var(--blue-medium) 100%);color:#e2e8f0;border-top:2px solid rgba(16,185,129,0.3);box-shadow:inset 0 1px 15px rgba(16,185,129,0.15);}
+    footer.site-footer h4{color:#10b981;}footer.site-footer a{color:#cbd5e1;transition:color 0.3s;}footer.site-footer a:hover{color:#34d399;}
+    @media(max-width:640px){#nav-links{display:none;}#menu-btn{display:block;}}
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<!-- NAVBAR -->
+<nav id="main-nav" class="nav-glass sticky top-0 z-50 w-full">
+  <div class="flex justify-between items-center py-3 px-4 sm:px-6 md:px-8">
+    <a href="{{ url_for('index') }}" class="text-2xl sm:text-3xl brand-text tracking-tight">Balaji Dairy</a>
+    <button id="menu-btn" class="sm:hidden p-2 rounded hover:bg-emerald-50 focus:outline-none" aria-label="Toggle Menu">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+    </button>
+    <div id="nav-links" class="flex items-center gap-4">
+      <a href="{{ url_for('index') }}" class="hover:text-emerald-700 text-gray-700">Home</a>
+      <a href="{{ url_for('index') }}#products" class="hover:text-emerald-700 text-gray-700">Products</a>
+      {% if current_user %}
+        <a href="{{ url_for('user_dashboard') }}" class="hover:text-emerald-700 text-gray-700">Dashboard</a>
+        {% if current_user.is_admin %}<a href="{{ url_for('admin_dashboard') }}" class="hover:text-emerald-700 text-gray-700">Admin</a>{% endif %}
+      {% endif %}
+      <a href="{{ url_for('cart') }}" class="relative" aria-label="Cart">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 inline-block text-emerald-700" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13l-2 6h14l-2-6M9 21a1 1 0 100-2 1 1 0 000 2zm6 0a1 1 0 100-2 1 1 0 000 2z"/></svg>
+        <span id="cart-count-badge" class="absolute -top-2 -right-3 bg-emerald-600 text-white rounded-full text-xs px-2">{{ cart_count }}</span>
+      </a>
+      {% if current_user %}
+        <div class="relative">
+          <button id="avatar-btn" class="flex items-center gap-2 focus:outline-none">
+            {% if current_user.avatar %}<img src="{{ current_user.avatar }}" alt="avatar" class="avatar-img">
+            {% else %}<div class="avatar-circle" title="{{ current_user.username }}">{{ current_user.initial }}</div>{% endif %}
+          </button>
+          <div id="avatar-menu" class="hidden absolute right-0 mt-2 w-44 glass rounded shadow p-2 backdrop-blur-xl">
+            <a href="{{ url_for('profile') }}" class="block px-2 py-1 rounded hover:bg-white/50">Change Avatar</a>
+            <a href="{{ url_for('logout') }}" class="block px-2 py-1 rounded hover:bg-white/50">Logout</a>
+          </div>
+        </div>
+      {% else %}
+        <a href="{{ url_for('login') }}" class="btn-ghost px-3 py-1 rounded">Login</a>
+        <a href="{{ url_for('register') }}" class="hidden sm:inline-block btn-emerald px-3 py-1 rounded">Register</a>
+      {% endif %}
+    </div>
+  </div>
+  <div id="mobile-menu" class="hidden sm:hidden flex-col gap-2 px-4 pb-4">
+    <a href="{{ url_for('index') }}" class="block py-1 text-gray-700 hover:text-emerald-700">Home</a>
+    <a href="{{ url_for('index') }}#products" class="block py-1 text-gray-700 hover:text-emerald-700">Products</a>
+    {% if current_user %}
+      <a href="{{ url_for('user_dashboard') }}" class="block py-1 text-gray-700 hover:text-emerald-700">Dashboard</a>
+      {% if current_user.is_admin %}<a href="{{ url_for('admin_dashboard') }}" class="block py-1 text-gray-700 hover:text-emerald-700">Admin</a>{% endif %}
+      <a href="{{ url_for('logout') }}" class="block py-1 text-gray-700 hover:text-emerald-700">Logout</a>
+    {% else %}
+      <a href="{{ url_for('login') }}" class="block py-1 text-gray-700 hover:text-emerald-700">Login</a>
+      <a href="{{ url_for('register') }}" class="block py-1 text-gray-700 hover:text-emerald-700">Register</a>
+    {% endif %}
+  </div>
+</nav>
+<!-- MAIN -->
+<main class="mx-auto px-3 py-8 flex-1 w-full max-w-7xl">
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="space-y-2 mb-4">
+        {% for category, msg in messages %}
+          <div class="glass p-3 rounded {{ 'text-green-800' if category=='success' else ('text-red-800' if category=='error' else 'text-emerald-800') }}">{{ msg }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+  {% block content %}{% endblock %}
+</main>
+<!-- FOOTER -->
+{% set footer_endpoints = ['index', 'product_detail', 'admin_dashboard', 'user_dashboard'] %}
+{% if request.endpoint in footer_endpoints %}
+<footer class="site-footer">
+  <div class="mx-auto max-w-7xl px-4 py-8">
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div><h4 class="font-bold mb-3">ADDRESS</h4><div class="text-sm leading-relaxed text-gray-300">BALAJI DAIRY,<br>Vandavasi Road, Nedungunam,<br>Thiruvannamalai Dist - 606 807</div></div>
+      <div><h4 class="font-bold mb-3">CONTACT US</h4><div class="text-sm leading-relaxed text-gray-300"><div class="flex items-center gap-2"><span>📞</span> 9047499400</div><div class="flex items-center gap-2"><span>📞</span> 9715642068</div><div class="flex items-center gap-2 mt-2"><span>✉️</span> srinichy1@gmail.com</div></div></div>
+      <div><h4 class="font-bold mb-3">IMPORTANT LINKS</h4><ul class="text-sm space-y-2"><li><a href="#">Terms and Conditions</a></li><li><a href="#">Privacy Policy</a></li><li><a href="#">Disclaimer</a></li></ul></div>
+    </div>
+  </div>
+</footer>
+{% endif %}
+<script>
+document.addEventListener('DOMContentLoaded',()=>{
+  const menuBtn=document.getElementById('menu-btn');
+  const mobileMenu=document.getElementById('mobile-menu');
+  const avBtn=document.getElementById('avatar-btn');
+  const avMenu=document.getElementById('avatar-menu');
+  if(menuBtn){menuBtn.addEventListener('click',()=>mobileMenu.classList.toggle('hidden'));}
+  if(avBtn&&avMenu){
+    avBtn.addEventListener('click',e=>{e.preventDefault();avMenu.classList.toggle('hidden');});
+    document.addEventListener('click',e=>{if(!avBtn.contains(e.target)&&!avMenu.contains(e.target))avMenu.classList.add('hidden');});
+  }
+});
+</script>
+</body></html>

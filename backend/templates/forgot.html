@@ -1,0 +1,15 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto glass p-6 rounded shadow-lg">
+  <h2 class="text-2xl font-bold text-emerald-700 mb-4 text-center">Forgot Password 🔑</h2>
+  <p class="text-sm text-gray-600 text-center mb-6">Enter your registered email or username to receive an OTP</p>
+  <form method="post" class="space-y-4">
+    <div>
+      <label class="block text-sm font-medium mb-1">Email or Username</label>
+      <input name="identifier" required class="w-full border border-gray-300 rounded p-2 focus:ring-2 focus:ring-emerald-400">
+    </div>
+    <button class="w-full btn-emerald py-2.5 rounded-lg font-semibold shadow">Send OTP</button>
+  </form>
+  <div class="text-center text-sm mt-4"><a href="{{ url_for('login') }}" class="text-gray-600 hover:underline">← Back to Login</a></div>
+</div>
+{% endblock %}

@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="text-lg sm:text-xl font-semibold mb-3 sm:mb-4">Your Cart</h2>
+{% if items %}
+  <div class="glass rounded p-3 sm:p-4">
+    <div class="overflow-x-auto -mx-2 sm:mx-0">
+      <table class="w-full text-left min-w-[560px] sm:min-w-0">
+        <thead><tr class="bg-emerald-50"><th class="py-2 px-3">Item</th><th class="py-2 px-3">Qty</th><th class="py-2 px-3">Subtotal</th><th class="py-2 px-3"></th></tr></thead>
+        <tbody>
+          {% for it in items %}
+          <tr class="border-t hover:bg-white/50">
+            <td class="py-2 px-3">{{ it.product.name }}</td>
+            <td class="py-2 px-3">{{ it.qty }}</td>
+            <td class="py-2 px-3">₹{{ '%.2f'|format(it.subtotal) }}</td>
+            <td class="py-2 px-3">
+              <form method="post" action="{{ url_for('remove_from_cart', product_id=it.product.id) }}">
+                <button class="text-red-600 hover:underline">Remove</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <div class="mt-4 flex flex-col sm:flex-row gap-3 sm:gap-0 sm:justify-between sm:items-center">
+      <div class="text-lg font-semibold">Total: ₹{{ '%.2f'|format(total) }}</div>
+      <div class="flex flex-col sm:flex-row gap-2">
+        <a href="/" class="btn-ghost px-3 py-2 rounded text-center">Continue Shopping</a>
+        {% if current_user %}
+          <a href="{{ url_for('checkout') }}" class="btn-emerald px-4 py-2 rounded text-center">Checkout</a>
+        {% else %}
+          <a href="{{ url_for('login') }}" class="btn-emerald px-4 py-2 rounded text-center">Login to Checkout</a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+{% else %}
+  <div class="glass p-6 rounded text-center">
+    <p class="text-gray-600 mb-4">Your cart is empty.</p>
+    <a href="/" class="btn-emerald px-4 py-2 rounded">Shop Now</a>
+  </div>
+{% endif %}
+{% endblock %}

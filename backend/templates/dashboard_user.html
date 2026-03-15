@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+{% block content %}
+<h2 class="text-2xl font-bold text-emerald-700 mb-4 sm:mb-6">Your Dashboard</h2>
+<div class="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-4" id="user-stats">
+  <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-white shadow-sm border border-emerald-100">
+    <div class="text-sm text-gray-500">Total Orders</div>
+    <div class="text-2xl font-bold text-emerald-700">{{ orders|length }}</div>
+  </div>
+  <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-white shadow-sm border border-emerald-100">
+    <div class="text-sm text-gray-500">Delivered Orders</div>
+    <div class="text-2xl font-bold text-emerald-700">{{ orders | selectattr('status','equalto','Delivered') | list | length }}</div>
+  </div>
+  <div class="p-4 rounded-2xl bg-gradient-to-br from-emerald-50 to-white shadow-sm border border-emerald-100">
+    <div class="text-sm text-gray-500">Total Spent</div>
+    <div class="text-2xl font-bold text-emerald-700">₹{{ orders | map(attribute='total') | sum | round(2) }}</div>
+  </div>
+</div>
+<div class="bg-white/80 backdrop-blur-md rounded-xl p-3 sm:p-4 shadow mb-4 sm:mb-6 flex flex-col md:flex-row md:justify-between gap-3 border border-emerald-50">
+  <div><h3 class="font-semibold text-gray-800">Order History</h3><div class="text-sm text-gray-500">Filter by date range</div></div>
+  <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+    <input type="date" id="user-filter-start" class="border rounded px-2 py-2 focus:ring-2 focus:ring-emerald-400 w-full sm:w-auto">
+    <input type="date" id="user-filter-end" class="border rounded px-2 py-2 focus:ring-2 focus:ring-emerald-400 w-full sm:w-auto">
+    <div class="flex gap-2">
+      <button id="user-filter-apply" class="bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded shadow">Apply</button>
+      <button id="user-filter-reset" class="px-3 py-2 rounded border">Reset</button>
+    </div>
+  </div>
+</div>
+<div id="user-orders-wrapper" class="space-y-3 sm:space-y-4">
+  {% if orders %}
+    {% for o in orders %}
+    <div class="order-card bg-white/80 backdrop-blur-md border border-emerald-100 p-4 sm:p-5 rounded-2xl shadow-sm">
+      <div class="flex flex-col sm:flex-row sm:justify-between gap-3">
+        <div>
+          <div class="text-base font-semibold text-emerald-700">Order #{{ o.id }}</div>
+          <div class="text-sm text-gray-500 mt-1">{{ o.created_at }}</div>
+          <div class="text-sm text-gray-600 mt-2">Items: {{ o.items_summary }}</div>
+        </div>
+        <div class="text-left sm:text-right">
+          <div class="text-sm text-gray-500 mb-1">Total</div>
+          <div class="text-lg font-bold text-emerald-700">₹{{ '%.2f'|format(o.total) }}</div>
+          <div class="mt-2">
+            <span class="px-3 py-1 rounded-full text-xs font-medium
+              {% if o.status=='Pending'%}bg-yellow-100 text-yellow-800
+              {% elif o.status=='Confirmed'%}bg-blue-100 text-blue-800
+              {% elif o.status=='Out for Delivery'%}bg-purple-100 text-purple-800
+              {% elif o.status=='Delivered'%}bg-green-100 text-green-800
+              {% else %}bg-gray-100 text-gray-700{% endif %}">{{ o.status }}</span>
+          </div>
+        </div>
+      </div>
+      <div class="mt-4 flex justify-between items-center">
+        <a href="{{ url_for('view_order', order_id=o.id) }}" class="text-sm font-medium text-emerald-700 hover:underline">View Details →</a>
+        {% if o.status == 'Pending' %}
+        <form method="post" action="{{ url_for('cancel_order', order_id=o.id) }}" onsubmit="return confirm('Cancel order #{{ o.id }}?');">
+          <button class="text-sm text-red-600 hover:underline">Cancel</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="text-center py-10 bg-white/80 border border-emerald-100 rounded-xl text-gray-500">No orders yet. Start shopping!</div>
+  {% endif %}
+</div>
+<script>
+async function fetchUserOrdersFragment(s,e){
+  const p=new URLSearchParams();if(s)p.set('start',s);if(e)p.set('end',e);
+  const r=await fetch('{{ url_for("user_orders_fragment") }}?'+p.toString());
+  if(r.ok)document.getElementById('user-orders-wrapper').innerHTML=await r.text();
+}
+async function fetchUserStatsFragment(s,e){
+  const p=new URLSearchParams();if(s)p.set('start',s);if(e)p.set('end',e);
+  const r=await fetch('{{ url_for("user_stats_fragment") }}?'+p.toString());
+  const box=document.getElementById('user-stats');
+  if(r.ok&&box)box.innerHTML=await r.text();
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  const s=document.getElementById('user-filter-start');
+  const e=document.getElementById('user-filter-end');
+  document.getElementById('user-filter-apply').addEventListener('click',async()=>{
+    await Promise.all([fetchUserOrdersFragment(s.value,e.value),fetchUserStatsFragment(s.value,e.value)]);
+  });
+  document.getElementById('user-filter-reset').addEventListener('click',async()=>{
+    s.value='';e.value='';
+    await Promise.all([fetchUserOrdersFragment('',''),fetchUserStatsFragment('','')]);
+  });
+});
+</script>
+{% endblock %}

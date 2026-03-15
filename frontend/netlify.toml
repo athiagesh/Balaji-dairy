@@ -1,0 +1,13 @@
+# Netlify Configuration for Balaji Dairy
+# This proxies ALL requests to Vercel (where the Flask backend runs)
+# After deploying to Vercel, replace YOUR-VERCEL-URL below
+
+[[redirects]]
+  from = "/*"
+  to = "https://YOUR-VERCEL-URL.vercel.app/:splat"
+  status = 200
+  force = true
+
+[build]
+  # No build command needed — Netlify is only a proxy/CDN here
+  publish = "public"

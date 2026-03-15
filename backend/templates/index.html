@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% block content %}
+<section class="glass rounded-2xl p-6 sm:p-8 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-10 mb-8 md:mb-10">
+  <div class="flex-1 space-y-3 sm:space-y-4 text-center md:text-left">
+    <h1 class="text-3xl sm:text-4xl font-extrabold text-emerald-700 leading-tight">Fresh Milk Delivered to Your Doorstep</h1>
+    <p class="text-gray-600 text-base sm:text-lg">From local farms, fresh every morning — purity you can taste.</p>
+    <a href="#products" class="inline-block btn-emerald text-white font-medium px-5 sm:px-6 py-2.5 sm:py-3 rounded-lg shadow">🛒 Shop Now</a>
+  </div>
+  <div class="flex-shrink-0 w-full md:w-1/2">
+    <img src="https://i.pinimg.com/736x/99/4e/33/994e338a12b4bd0a18544d5a1f46534c.jpg" alt="Fresh milk" class="w-full max-h-[360px] object-contain rounded-xl shadow-md">
+  </div>
+</section>
+<h2 id="products" class="text-xl sm:text-2xl font-bold mb-4 sm:mb-6 text-gray-800">Our Products</h2>
+{% if products %}
+<div class="grid gap-6 sm:gap-8" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));">
+  {% for p in products %}
+  <div class="glass rounded-xl flex flex-col overflow-hidden">
+    <div class="bg-white/60 flex justify-center items-center h-[220px]">
+      <img src="{{ p.image or 'https://via.placeholder.com/300x200?text=No+Image' }}" alt="{{ p.name }}" class="max-h-[210px] w-auto object-contain rounded">
+    </div>
+    <div class="p-4 sm:p-5 flex-1 flex flex-col justify-between">
+      <div>
+        <h3 class="text-base sm:text-lg font-semibold text-gray-900">{{ p.name }}</h3>
+        <p class="text-sm text-gray-600 mt-1 line-clamp-2">{{ p.description or "No description available." }}</p>
+      </div>
+      <div class="mt-4 flex justify-between items-center text-sm sm:text-base">
+        <div class="text-lg sm:text-xl font-bold text-emerald-600">₹{{ '%.2f'|format(p.price) }}</div>
+        <div>
+          {% if p.stock == 0 %}<span class="text-red-600 text-xs sm:text-sm font-semibold">Out of Stock</span>
+          {% else %}<span class="text-gray-600 text-xs sm:text-sm">Stock: <strong>{{ p.stock }}</strong></span>{% endif %}
+        </div>
+      </div>
+      <div class="mt-4 sm:mt-5 flex items-center justify-between gap-3">
+        <div class="qty-widget flex items-center space-x-2 w-full sm:w-auto" data-product-id="{{ p.id }}">
+          <button class="qty-sub bg-white/70 hover:bg-white px-3 py-2 rounded-lg text-base">−</button>
+          <input type="number" class="qty-input w-20 text-center border rounded-lg px-2 py-2 focus:ring-2 focus:ring-emerald-400 focus:outline-none" value="1" min="1" {% if p.stock == 0 %}disabled{% endif %}>
+          <button class="qty-add bg-white/70 hover:bg-white px-3 py-2 rounded-lg text-base">+</button>
+        </div>
+        {% if p.stock == 0 %}
+          <button class="add-cart-btn btn-emerald px-4 py-2 rounded-lg opacity-60 cursor-not-allowed w-full sm:w-auto" disabled>Out of Stock</button>
+        {% else %}
+          <button class="add-cart-btn btn-emerald px-4 py-2 rounded-lg shadow w-full sm:w-auto">Add</button>
+        {% endif %}
+      </div>
+      <div class="mt-3 text-right">
+        <a href="{{ url_for('product_detail', product_id=p.id) }}" class="text-emerald-700 hover:underline text-sm sm:text-base">View details →</a>
+      </div>
+    </div>
+  </div>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-gray-600">No products available at the moment.</p>
+{% endif %}
+<script>
+function showToast(msg){const t=document.createElement('div');t.innerHTML=msg;t.className="glass px-4 py-3 rounded-lg shadow-lg fixed bottom-5 right-5 z-50";document.body.appendChild(t);setTimeout(()=>t.remove(),2200);}
+function setCartCount(n){const el=document.getElementById('cart-count-badge');if(el)el.textContent=n;}
+async function addToCartAjax(productId,qty){
+  try{
+    const form=new FormData();form.append('product_id',productId);form.append('qty',qty);
+    const resp=await fetch('{{ url_for("api_cart_add") }}',{method:'POST',credentials:'same-origin',body:form});
+    const data=await resp.json();
+    if(!resp.ok){showToast(data.error||'Could not add to cart');return;}
+    setCartCount(data.total_items||0);showToast(`✅ Added ${qty} × ${data.product_name||'item'} to cart`);
+  }catch(err){console.error(err);showToast('❌ Error adding to cart');}
+}
+document.addEventListener('DOMContentLoaded',()=>{
+  document.querySelectorAll('.qty-widget').forEach(widget=>{
+    const input=widget.querySelector('.qty-input');
+    const btnAdd=widget.querySelector('.qty-add');
+    const btnSub=widget.querySelector('.qty-sub');
+    const productId=widget.dataset.productId;
+    const addCartBtn=widget.parentElement.querySelector('.add-cart-btn');
+    btnAdd?.addEventListener('click',e=>{e.preventDefault();input.value=(parseInt(input.value)||0)+1;});
+    btnSub?.addEventListener('click',e=>{e.preventDefault();input.value=Math.max(1,(parseInt(input.value)||1)-1);});
+    addCartBtn?.addEventListener('click',e=>{e.preventDefault();addToCartAjax(productId,parseInt(input.value)||1);});
+  });
+});
+</script>
+{% endblock %}

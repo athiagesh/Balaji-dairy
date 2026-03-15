@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="max-w-md mx-auto glass p-6 rounded shadow-lg">
+  <h2 class="text-2xl font-bold text-emerald-700 mb-4 text-center">Welcome Back</h2>
+  <p class="text-sm text-gray-600 text-center mb-6">Login to continue your Balaji Dairy experience</p>
+  <form method="post" class="space-y-4">
+    <div>
+      <label class="block text-sm mb-1 font-medium">Username or Email</label>
+      <input name="username" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-emerald-400" required>
+    </div>
+    <div>
+      <label class="block text-sm mb-1 font-medium">Password</label>
+      <input name="password" type="password" class="w-full border border-gray-300 p-2 rounded focus:ring-2 focus:ring-emerald-400" required>
+    </div>
+    <div class="flex justify-between items-center text-sm">
+      <a href="{{ url_for('forgot_password') }}" class="text-emerald-700 hover:underline">Forgot password?</a>
+      <a href="{{ url_for('register') }}" class="text-gray-600 hover:text-emerald-700 hover:underline">Don't have an account?</a>
+    </div>
+    <button class="w-full btn-emerald py-2.5 rounded-lg font-semibold shadow mt-3">Login</button>
+  </form>
+</div>
+{% endblock %}
