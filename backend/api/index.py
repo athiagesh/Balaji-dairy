@@ -28,7 +28,10 @@ STATIC_DIR   = os.path.join(BASE_DIR, '..', 'static')      # backend/static/
 # NOTE: UPLOAD_DIR is kept for LOCAL development only.
 # On Vercel, the filesystem is ephemeral — use image URLs instead.
 UPLOAD_DIR = os.path.join(BASE_DIR, '..', 'uploads')
-os.makedirs(UPLOAD_DIR, exist_ok=True)
+try:
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+except OSError:
+    pass # Vercel has a read-only filesystem, ignore this error
 
 # ---------- SUPABASE / DB CONNECTION ----------
 # Set DATABASE_URL in Vercel environment variables (Project Settings → Env Vars)
