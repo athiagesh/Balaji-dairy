@@ -4,7 +4,7 @@
 
 [[redirects]]
   from = "/*"
-  to = "https://YOUR-VERCEL-URL.vercel.app/:splat"
+  to = "https://balaji-dairy-75m8.vercel.app/:splat"
   status = 200
   force = true
 
