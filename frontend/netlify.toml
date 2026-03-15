@@ -10,4 +10,4 @@
 
 [build]
   # No build command needed — Netlify is only a proxy/CDN here
-  publish = "public"
+  publish = "."
